@@ -25,6 +25,15 @@ namespace P3AddNewFunctionalityDotNetCore.Models.Services
             _orderRepository = orderRepository;
             _localizer = localizer;
         }
+
+        //fake constructor for unit testing
+        public ProductService(Cart cart, ProductRepository productRepository, OrderRepository orderRepository)
+        {
+            _cart = cart;
+            _productRepository = productRepository;
+            _orderRepository = orderRepository;
+        }
+
         public List<ProductViewModel> GetAllProductsViewModel()
         {
              

@@ -19,13 +19,6 @@ namespace P3AddNewFunctionalityDotNetCore.Controllers
             _languageService = languageService;
         }
 
-
-        //This contructor is used for TESTING ONLY
-        //Do not use it otherwise
-        public ProductController()
-        {
-        }
-
         public IActionResult Index()
         {
             IEnumerable<ProductViewModel> products = _productService.GetAllProductsViewModel();
