@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentValidation.TestHelper;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.KeyVault.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Localization;
 using P3AddNewFunctionalityDotNetCore.Models.Entities;
 using P3AddNewFunctionalityDotNetCore.Models.Repositories;
+using P3AddNewFunctionalityDotNetCore.Models.Validations;
 using P3AddNewFunctionalityDotNetCore.Models.ViewModels;
 
 namespace P3AddNewFunctionalityDotNetCore.Models.Services
@@ -24,14 +30,6 @@ namespace P3AddNewFunctionalityDotNetCore.Models.Services
             _productRepository = productRepository;
             _orderRepository = orderRepository;
             _localizer = localizer;
-        }
-
-        //fake constructor for unit testing
-        public ProductService(Cart cart, ProductRepository productRepository, OrderRepository orderRepository)
-        {
-            _cart = cart;
-            _productRepository = productRepository;
-            _orderRepository = orderRepository;
         }
 
         public List<ProductViewModel> GetAllProductsViewModel()
@@ -58,6 +56,21 @@ namespace P3AddNewFunctionalityDotNetCore.Models.Services
             }
 
             return products;
+        }
+
+        public static ProductViewModel GetProductViewModel(Models.Entities.Product productEntity)
+        {
+            ProductViewModel product = new ProductViewModel()
+                {
+                    Id = productEntity.Id,
+                    Stock = productEntity.Quantity.ToString(),
+                    Price = productEntity.Price.ToString(CultureInfo.InvariantCulture),
+                    Name = productEntity.Name,
+                    Description = productEntity.Description,
+                    Details = productEntity.Details
+                };
+
+            return product;
         }
 
         public List<Product> GetAllProducts()
@@ -99,43 +112,23 @@ namespace P3AddNewFunctionalityDotNetCore.Models.Services
             }
         }
 
-        // TODO this is an example method, remove it and perform model validation using data annotations
         public List<string> CheckProductModelErrors(ProductViewModel product)
         {
             List<string> modelErrors = new List<string>();
-            if (product.Name == null || string.IsNullOrWhiteSpace(product.Name))
-            {
-                modelErrors.Add(_localizer["MissingName"]);
-            }
 
-            if (product.Price == null || string.IsNullOrWhiteSpace(product.Price))
-            {
-                modelErrors.Add(_localizer["MissingPrice"]);
-            }
+            ProductViewModelValidator validator = new ProductViewModelValidator();
 
-            if (!Double.TryParse(product.Price, out double pc))
-            {
-                modelErrors.Add(_localizer["PriceNotANumber"]);
-            }
-            else
-            {
-                if (pc <= 0)
-                    modelErrors.Add(_localizer["PriceNotGreaterThanZero"]);
-            }
+            var result = validator.TestValidate(product).ToDictionary();
 
-            if (product.Stock == null || string.IsNullOrWhiteSpace(product.Stock))
-            {
-                modelErrors.Add(_localizer["MissingQuantity"]);
-            }
 
-            if (!int.TryParse(product.Stock, out int qt))
+            foreach(var property in result)
             {
-                modelErrors.Add(_localizer["StockNotAnInteger"]);
-            }
-            else
-            {
-                if (qt <= 0)
-                    modelErrors.Add(_localizer["StockNotGreaterThanZero"]);
+                var list = property.Value.ToList();
+
+                foreach(string error in list)
+                {
+                    modelErrors.Add(_localizer[error]);
+                }
             }
 
             return modelErrors;
