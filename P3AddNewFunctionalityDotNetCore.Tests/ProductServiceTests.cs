@@ -295,8 +295,6 @@ namespace ProductServiceTests
             Assert.Empty(result);
         }
 
-
-
     }
 
     public class GetAllProductsViewModel
@@ -396,4 +394,22 @@ namespace ProductServiceTests
         
     }
 
+    public class GetProductViewModel
+    {
+        [Fact]
+        public void CheckEndType()
+        {
+            Product product = new Product()
+            {
+                Id = 1,
+                Price = 1,
+                Quantity = 1,
+                Name = "Name1",
+            };
+
+            var result = ProductService.GetProductViewModel(product);
+
+            Assert.IsType<ProductViewModel>(result);
+        }
+    }
 }
